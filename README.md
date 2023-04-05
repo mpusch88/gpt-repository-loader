@@ -23,7 +23,7 @@ To get started with `gpt-repository-loader`, follow these steps:
 4. Run `gpt-repository-loader` with the following command:
 
    ```bash
-   python gpt_repository_loader.py /path/to/git/repository [-p /path/to/preamble.txt] [-o /path/to/context_file.txt]
+   python gpt_repository_loader.py /path/to/git/repository [-p /path/to/preamble.txt] [-o /path/to/output_file.txt]
    ```
     Replace `/path/to/git/repository` with the path to the Git repository you want to process. Optionally, you can specify a preamble file with -p or an output file with -o. If not specified, the default output file will be named output.txt in the current directory.
 
@@ -36,18 +36,18 @@ output to multiple files, so that each request can be split to GPT-4's request l
 a 32k token limit.
 
    ```bash
-   python gpt_repository_loader.py /path/to/git/repository [-p /path/to/preamble.txt] [-o /path/to/context_file.txt] [-t 8000]
+   python gpt_repository_loader.py /path/to/git/repository [-p /path/to/preamble.txt] [-o /path/to/output_file.txt] [-t 8000]
    ```
 
 Above command will output multiple files, starting with an index of 1. Each file will have around 8k tokens. For 
 example,
 
 ```
-/path/to/context_file_1.txt
-/path/to/context_file_2.txt
-/path/to/context_file_3.txt
-/path/to/context_file_4.txt
-/path/to/context_file_5.txt
+/path/to/output_file_1.txt
+/path/to/output_file_2.txt
+/path/to/output_file_3.txt
+/path/to/output_file_4.txt
+/path/to/output_file_5.txt
 ```
 
 By default, the max output is limited to 5 files. Any content that doesn't fit the limit is ignored. You can override 
@@ -55,7 +55,7 @@ the max output limit by adding `-m` argument.
 Following example splits the output to 10 files, with each file having a token size of 32k.
 
    ```bash
-   python gpt_repository_loader.py /path/to/git/repository [-p /path/to/preamble.txt] [-o /path/to/context_file.txt] [-t 32000] [-m 10]
+   python gpt_repository_loader.py /path/to/git/repository [-p /path/to/preamble.txt] [-o /path/to/output_file.txt] [-t 32000] [-m 10]
    ```
 
 ## Running Tests
