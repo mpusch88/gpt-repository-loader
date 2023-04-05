@@ -16,3 +16,5 @@ LICENSE
 *.jpeg
 *.jpg
 *bin/*
+output_*
+context_*

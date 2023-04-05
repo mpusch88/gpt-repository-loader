@@ -32,7 +32,7 @@ def write_preamble(file, preamble_file=None):
             preamble_text = pf.read()
         file.write(f"{preamble_intro}\n{preamble_text}\n\n\n\n***DATA START***\n\n-PART 1-\n\n\n")
     else:
-        file.write(f"{preamble_intro}\n\n\n\n***DATA START***\n\n-PART 1-\n\n\n")
+        file.write(f"{preamble_intro}\n\n\n***DATA START***\n\n-PART 1-\n\n\n")
 
 def write_preamble_multiple(file, file_index):
     file.write(f"-PART {file_index}-\n\n\n")

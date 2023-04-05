@@ -4,8 +4,9 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Output file
-output.txt
+# Output files
+output_*
+context_*
 
 # Unit test artifacts
 .coverage
