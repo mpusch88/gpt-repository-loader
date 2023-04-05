@@ -18,3 +18,7 @@ LICENSE
 *bin/*
 output_*
 context_*
+output.txt
+context.txt
+.preamble
+preamble.txt
