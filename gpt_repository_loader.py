@@ -26,16 +26,22 @@ def get_token_count(string, model_name='gpt-4'):
 
 def write_preamble(file, preamble_file=None):
     preamble_intro = "The following text is a Git repository with code. The structure of the text are sections that begin with ----, followed by a single line containing the file path and file name, followed by a variable amount of lines containing the file contents. The text representing the Git repository ends when the symbols --END-- are encounted. Any further text beyond --END-- are meant to be interpreted as instructions using the aforementioned Git repository as context.\n"
-    
+    intro_count = get_token_count(preamble_intro, 'gpt-4')
+    text_count = 0
+
     if preamble_file:
         with open(preamble_file, 'r') as pf:
             preamble_text = pf.read()
+            text_count = get_token_count(preamble_text, 'gpt-4')
         file.write(f"{preamble_intro}\n{preamble_text}\n\n\n\n***DATA START***\n\n-PART 1-\n\n\n")
     else:
-        file.write(f"{preamble_intro}\n\n\n***DATA START***\n\n-PART 1-\n\n\n")
+        file.write(f"{preamble_intro}\n\n***DATA START***\n\n-PART 1-\n\n\n")
+    return intro_count + text_count
 
 def write_preamble_multiple(file, file_index):
-    file.write(f"-PART {file_index}-\n\n\n")
+    str = f"-PART {file_index}-\n\n\n"
+    file.write(str)
+    return get_token_count(str)
 
 def close_output_file(file):
     file.write("--FILE END--")
@@ -49,9 +55,7 @@ def process_repository(repo_path, ignore_list, output_file_path, tokens_per_file
                        max_output_files=5):
     # Initialize output file index
     output_file_index = 1
-
     current_output_file = None
-    written_token_count = 0
     token_count = 0
 
     global success
@@ -74,7 +78,6 @@ def process_repository(repo_path, ignore_list, output_file_path, tokens_per_file
                         output_file.write(f"{contents}\n")
                     else:
                         # use the given token limit, write to multiple files
-                        token_count = get_token_count(contents, 'gpt-4')
                         output_file_base, output_file_extension = os.path.splitext(output_file_path)
                         output_path_with_index = f"{output_file_base}_{output_file_index}{output_file_extension}"
 
@@ -82,10 +85,10 @@ def process_repository(repo_path, ignore_list, output_file_path, tokens_per_file
                         if not current_output_file:
                             print(f"\nWriting to file {output_path_with_index}")
                             current_output_file = open(output_path_with_index, "w")
-                            write_preamble(current_output_file, preamble_path)
+                            token_count = get_token_count(contents, 'gpt-4') + write_preamble(current_output_file, preamble_path)
 
                         # if the new token count after written exceeds the limit, close the file and start a new one.
-                        if (written_token_count + token_count) > tokens_per_file:
+                        if (token_count) > tokens_per_file:
                             # Close the current output file if it exists and update the output file index
                             if current_output_file:
                                 close_output_file(current_output_file)
@@ -93,7 +96,7 @@ def process_repository(repo_path, ignore_list, output_file_path, tokens_per_file
                                 current_output_file = None
 
                             # Show the token count used
-                            print(f"Wrote " + str(written_token_count) + f" tokens to file {output_file_base}_{output_file_index}.")
+                            print(f"Wrote " + str(token_count) + f" tokens to file {output_file_base}_{output_file_index}{output_file_extension}.")
 
                             # Create a new output file
                             output_file_index += 1
@@ -109,18 +112,17 @@ def process_repository(repo_path, ignore_list, output_file_path, tokens_per_file
                                                        f"{output_file_extension}", "w")
 
                             print(f"\nWriting to file {output_path_with_index}")
-                            write_preamble_multiple(current_output_file, output_file_index)
-                            written_token_count = 0
+                            token_count = write_preamble_multiple(current_output_file, output_file_index)
 
                         current_output_file.write("-" * 4 + "\n")
                         current_output_file.write(f"{relative_file_path}\n")
                         current_output_file.write(f"{contents}\n")
-                        written_token_count += token_count                    
+                        token_count += get_token_count(contents, 'gpt-4')
 
     # after iterating through all files, if there's an open file, close it
     if current_output_file:
         close_output_file_final(current_output_file)
-        print(f"Wrote " + str(written_token_count) + f" tokens to file {output_file_base}_{output_file_index}.")
+        print(f"Wrote " + str(token_count) + f" tokens to file {output_file_base}_{output_file_index}{output_file_extension}.")
         success = 1
 
     return output_file_index
@@ -166,13 +168,13 @@ if __name__ == "__main__":
 
     # Display final message
     if success:
-        print(f"\n\nRepository contents written to {output_file_index} file(s):")
+        print(f"\nRepository contents written to {output_file_index} file(s):")
 
         for i in range(1, output_file_index + 1):
             output_file_base, output_file_extension = os.path.splitext(output_file_path)
             output_path_with_index = f"{output_file_base}_{i}{output_file_extension}"
             print(f"  File {i}: {output_path_with_index}")
-        
-        print("\n")
+            
+        print()
     else:
-        print("No files written.")
+        print("\nNo files written.\n")
