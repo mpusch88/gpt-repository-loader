@@ -175,6 +175,5 @@ if __name__ == "__main__":
             output_path_with_index = f"{output_file_base}_{i}{output_file_extension}"
             print(f"  File {i}: {output_path_with_index}")
             
-        print()
     else:
         print("\nNo files written.\n")
