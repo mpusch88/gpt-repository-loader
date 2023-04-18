@@ -25,7 +25,7 @@ def get_token_count(string, model_name='gpt-4'):
     return len(encoding.encode(string))
 
 def write_preamble(file, preamble_file=None):
-    preamble_intro = "The following text is a Git repository with code. The structure of the text are sections that begin with ----, followed by a single line containing the file path and file name, followed by a variable amount of lines containing the file contents. The text representing the Git repository ends when the symbols --END-- are encounted. Any further text beyond --END-- are meant to be interpreted as instructions using the aforementioned Git repository as context.\n"
+    preamble_intro = "The following text contains relevant files and documentation from a Git repo. The text contains sections that begin with ----, followed by a single line containing the file path and file name, followed by a variable amount of lines containing the file contents. The end of each file is denoted by --END OF FILE--. The text representing the Git repository ends when the line --END-- is encounted. Any further text beyond --END-- is meant to be interpreted as instructions using the Git repository as context. The code may be provided in multiple entries, each of which will be denoted with a --PART #-- heading. Please remember all code beginning at --PART 1--, but don't respond until receiving an entry containing the --END-- line.\n"
     intro_count = get_token_count(preamble_intro, 'gpt-4')
     text_count = 0
 
@@ -39,7 +39,7 @@ def write_preamble(file, preamble_file=None):
     return intro_count + text_count
 
 def write_preamble_multiple(file, file_index):
-    str = f"-PART {file_index}-\n\n\n"
+    str = f"--PART {file_index}--\n\n\n"
     file.write(str)
     return get_token_count(str)
 
