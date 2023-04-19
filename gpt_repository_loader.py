@@ -25,17 +25,17 @@ def get_token_count(string, model_name='gpt-4'):
     return len(encoding.encode(string))
 
 def write_preamble(file, preamble_file=None):
-    preamble_intro = "The following text contains relevant files and documentation from a Git repo. The text contains sections that begin with ----, followed by a single line containing the file path and file name, followed by a variable amount of lines containing the file contents. The end of each file is denoted by --END OF FILE--. The text representing the Git repository ends when the line --END-- is encounted. Any further text beyond --END-- is meant to be interpreted as instructions using the Git repository as context. The code may be provided in multiple entries, each of which will be denoted with a --PART #-- heading. Please remember all code beginning at --PART 1--, but don't respond until receiving an entry containing the --END-- line.\n"
-    intro_count = get_token_count(preamble_intro, 'gpt-4')
+    preamble_basic = "The following text contains relevant files and documentation from a Git repo. The text contains sections that begin with ----, followed by a single line containing the file path and file name, followed by a variable amount of lines containing the file contents. The end of each file is denoted by --END OF FILE--. The text representing the Git repository ends when the line --END-- is encounted. Any further text beyond --END-- is meant to be interpreted as instructions using the Git repository as context. The code may be provided in multiple entries, each of which will be denoted with a --PART #-- heading. Please remember all code beginning at --PART 1--, but don't respond until receiving an entry containing the --END-- line.\n"
+    intro_count = get_token_count(preamble_basic, 'gpt-4')
     text_count = 0
 
     if preamble_file:
         with open(preamble_file, 'r') as pf:
-            preamble_text = pf.read()
-            text_count = get_token_count(preamble_text, 'gpt-4')
-        file.write(f"{preamble_intro}\n{preamble_text}\n\n\n\n***DATA START***\n\n-PART 1-\n\n\n")
+            preamble_extra = pf.read()
+            text_count = get_token_count(preamble_extra, 'gpt-4')
+        file.write(f"{preamble_extra}\n{preamble_basic}\n\n\n\n***DATA START***\n\n-PART 1-\n\n")
     else:
-        file.write(f"{preamble_intro}\n\n***DATA START***\n\n-PART 1-\n\n\n")
+        file.write(f"{preamble_basic}\n\n***DATA START***\n\n-PART 1-\n\n\n")
     return intro_count + text_count
 
 def write_preamble_multiple(file, file_index):
