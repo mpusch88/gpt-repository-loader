@@ -25,7 +25,7 @@ def get_token_count(string, model_name='gpt-4'):
     return len(encoding.encode(string))
 
 def write_preamble(file, preamble_file=None):
-    preamble_basic = "The following text contains relevant files and documentation from a Git repo. The text contains sections that begin with ----, followed by a single line containing the file path and file name, followed by a variable amount of lines containing the file contents. The end of each file is denoted by --END OF FILE--. The text representing the Git repository ends when the line --END-- is encounted. Any further text beyond --END-- is meant to be interpreted as instructions using the Git repository as context. The code may be provided in multiple entries, each of which will be denoted with a --PART #-- heading. Please remember all code beginning at --PART 1--, but don't respond until receiving an entry containing the --END-- line.\n"
+    preamble_basic = "The following text contains relevant files and documentation from a Git repository. The text contains sections that begin with '----', followed by a single line containing the file path and file name, followed by a variable amount of lines containing the file contents. The text representing the Git repository ends when the line '***DATA STOP***' is encounted. Any further text beyond '***DATA STOP***' is meant to be interpreted as instructions using the Git repository as context. The code may be provided in multiple entries - please consider everything from '***DATA START***' on, but don't respond until receiving an entry containing '***DATA STOP***'. Messages ending in 'ctd...' indicate that additional information will be sent in a subsequent message, and that a reply is not desired."
     intro_count = get_token_count(preamble_basic, 'gpt-4')
     text_count = 0
 
@@ -33,22 +33,17 @@ def write_preamble(file, preamble_file=None):
         with open(preamble_file, 'r') as pf:
             preamble_extra = pf.read()
             text_count = get_token_count(preamble_extra, 'gpt-4')
-        file.write(f"{preamble_extra}\n{preamble_basic}\n\n\n\n***DATA START***\n\n-PART 1-\n\n")
+        file.write(f"{preamble_extra}\n{preamble_basic}\n\n\n***DATA START***\n\n")
     else:
-        file.write(f"{preamble_basic}\n\n***DATA START***\n\n-PART 1-\n\n\n")
+        file.write(f"{preamble_basic}\n\n***DATA START***\n\n\n")
     return intro_count + text_count
 
-def write_preamble_multiple(file, file_index):
-    str = f"--PART {file_index}--\n\n\n"
-    file.write(str)
-    return get_token_count(str)
-
 def close_output_file(file):
-    file.write("--FILE END--")
+    file.write("\n\nctd...\n")
     file.close()
 
 def close_output_file_final(file):
-    file.write("--END--\n\n***DATA STOP***")
+    file.write("\n\n***DATA STOP***\n")
     file.close()
 
 def process_repository(repo_path, ignore_list, output_file_path, tokens_per_file=-1, preamble_path=None,
@@ -112,7 +107,7 @@ def process_repository(repo_path, ignore_list, output_file_path, tokens_per_file
                                                        f"{output_file_extension}", "w")
 
                             print(f"\nWriting to file {output_path_with_index}")
-                            token_count = write_preamble_multiple(current_output_file, output_file_index)
+                            token_count = 0
 
                         current_output_file.write("-" * 4 + "\n")
                         current_output_file.write(f"{relative_file_path}\n")
