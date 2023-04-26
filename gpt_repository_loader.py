@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from pathlib import Path
 import sys
 import fnmatch
 import tiktoken
@@ -30,12 +31,20 @@ def write_preamble(file, preamble_file=None):
     text_count = 0
 
     if preamble_file:
-        with open(preamble_file, 'r') as pf:
-            preamble_extra = pf.read()
-            text_count = get_token_count(preamble_extra, 'gpt-4')
-        file.write(f"{preamble_extra}\n{preamble_basic}\n\n\n***DATA START***\n\n")
+        script_dir = Path(sys.argv[0]).resolve().parent
+        preamble_path = script_dir / preamble_file
+
+        try:
+            with open(preamble_path, "r") as pf:
+                preamble_extra = pf.read()
+                text_count = get_token_count(preamble_extra, 'gpt-4')
+                file.write(f"{preamble_extra}\n{preamble_basic}\n\n\n***DATA START***\n\n")
+        except FileNotFoundError:
+            print(f"Could not find preamble file {preamble_file}. Using basic preamble instead.")
+            file.write(f"{preamble_basic}\n\n***DATA START***\n\n\n")
     else:
         file.write(f"{preamble_basic}\n\n***DATA START***\n\n\n")
+        
     return intro_count + text_count
 
 def close_output_file(file):
@@ -76,9 +85,12 @@ def process_repository(repo_path, ignore_list, output_file_path, tokens_per_file
                         output_file_base, output_file_extension = os.path.splitext(output_file_path)
                         output_path_with_index = f"{output_file_base}_{output_file_index}{output_file_extension}"
 
-                        # if there's no file, create a new one
                         if not current_output_file:
                             print(f"\nWriting to file {output_path_with_index}")
+
+                            if not os.path.exists(os.path.dirname(output_path_with_index)):
+                                os.makedirs(os.path.dirname(output_path_with_index))
+
                             current_output_file = open(output_path_with_index, "w")
                             token_count = get_token_count(contents, 'gpt-4') + write_preamble(current_output_file, preamble_path)
 
